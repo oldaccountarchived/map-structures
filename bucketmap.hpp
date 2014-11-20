@@ -1,10 +1,11 @@
 #include <cstdlib>
+#include <cstddef>
 
-class HashMap {
+class BucketMap {
 
 public:
-    HashMap(unsigned int max_size);
-    ~HashMap();
+    BucketMap(unsigned int max_size);
+    ~BucketMap();
 
     bool insert( char key, int value );
     bool remove( char key, int &value );
@@ -18,10 +19,18 @@ private:
     struct pair {
         int value;
         char key;
-
+        pair* next;
+        
         pair( char key, int value ) {
             this->value = value;
             this->key = key;
+            this->next = nullptr;
+        }
+
+        pair( char key, int value, pair* next ) {
+            this->value = value;
+            this->key = key;
+            this->next = next;
         }
     };
     pair** backing_array;

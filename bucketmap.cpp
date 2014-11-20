@@ -1,9 +1,8 @@
-#include "hashmap.hpp"
-#include <cstddef>
+#include "bucketmap.hpp"
 #include <stack>
 #include <iostream>
 
-HashMap::HashMap(unsigned int max_size) {
+BucketMap::BucketMap(unsigned int max_size) {
     this->backing_array = new pair*[1024];
     this->size = 0;
     this->max_size = max_size;
@@ -11,15 +10,15 @@ HashMap::HashMap(unsigned int max_size) {
         backing_array[i] = nullptr;
 }
 
-HashMap::~HashMap() {
+BucketMap::~BucketMap() {
     delete[] backing_array;
 }
 
-int HashMap::hash( char key ) {
+int BucketMap::hash( char key ) {
     return ( (int) key % max_size );
 }
 
-bool HashMap::insert( char key, int value ) {
+bool BucketMap::insert( char key, int value ) {
     if ( size == max_size ) {
         return false;
     }
@@ -30,102 +29,65 @@ bool HashMap::insert( char key, int value ) {
         ++size;
         return true;
     } else {
-        for ( int i = index + 1; i != index; ++i ) {
-            if ( i == max_size ) { // Wrap around
-                i = 0;
-            }
-            if ( backing_array[i] == nullptr ) {
-                backing_array[i] = item;
-                ++size;
-                return true;
-            }
+        pair* temp = backing_array[index];
+        while ( temp->next != nullptr ) {
+            temp = temp->next;
         }
-        // There's no spot to insert this value.
-        return false;
+        temp->next = item;
+        return true;
     }
 }
 
-bool HashMap::remove( char key, int &value ) {
+bool BucketMap::remove( char key, int &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
-        backing_array[index] = nullptr;
+        // This may leak memory
+        backing_array[index] = backing_array[index]->next;
         --size;
-        std::stack<pair*> values;
-        for ( int i = index + 1; i != index; ++i ) {
-            if ( i == max_size ) {
-                i = 0;
-            }
-            if ( backing_array[i] == nullptr ) {
-                break;
-            }
-            values.push( backing_array[i] );
-            backing_array[i] = nullptr;
-        }
-        while ( !values.empty() ) {
-            pair* item = values.top();
-            values.pop();
-            insert( item->key, item->value );
-        }
-        // TODO: This should also clean up clusters.
         return true;
     } else {
-         for ( int i = index + 1; i != index; ++i ) {
-            if ( i == max_size ) { // Wrap around
-                i = 0;
+        pair* temp = backing_array[index];
+        while ( temp->next != nullptr ) {
+            if ( temp->next->key == key ) {
+                value = temp->next->value;
+                temp->next = temp->next->next;
+                --size;
+                return true;
             }
-            if ( backing_array[i]->key == key ) {
-                 value = backing_array[i]->value;
-                 backing_array[i] = nullptr;
-                 --size;
-                 std::stack<pair*> values;
-                 for ( int j = i + 1; j != i; ++j ) {
-                     if ( j == max_size ) {
-                         j = 0;
-                     }
-                     if ( backing_array[j] == nullptr ) {
-                         break;
-                     }
-                     values.push( backing_array[j] );
-                     backing_array[j] = nullptr;
-                 }
-                 while ( !values.empty() ) {
-                     pair* item = values.top();
-                     values.pop();
-                     insert( item->key, item->value );
-                 }
-                 return true;
-            }
-         }
-         return false;
+            temp = temp->next;
+        }
+        // We found nothing so...
+        return false;
     }
 }
 
-bool HashMap::search( char key, int &value ) {
+bool BucketMap::search( char key, int &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
         return true;
     } else {
-        for ( int i = index + 1; i != index; ++i ) {
-            if ( i == max_size )
-                i = 0;
-            if ( backing_array[i]->key == key ) {
-                value = backing_array[i]->value;
+        pair* temp = backing_array[index];
+        while ( temp->next != nullptr ) {
+            if ( temp->next->key == key ) {
+                value = temp->next->value;
                 return true;
             }
+            temp = temp->next;
         }
+        // We found nothing so...
         return false;
     }
 }
 
-void HashMap::clear() {
+void BucketMap::clear() {
     for ( int i = 0; i != max_size; ++i ) {
         backing_array[i] = nullptr;
     }
 }
 
-bool HashMap::isEmpty() {
+bool BucketMap::isEmpty() {
     if ( size == 0 ) {
         return true;
     } else {
@@ -133,16 +95,23 @@ bool HashMap::isEmpty() {
     }
 }
 
-std::size_t HashMap::capacity() {
+std::size_t BucketMap::capacity() {
     return size;
 }
 
-void HashMap::print() {
+void BucketMap::print() {
     for ( int i = 0; i != max_size; ++i ) {
         if ( backing_array[i] != nullptr ) {
             std::cout << "position: " << i
                       << ", key: " << backing_array[i]->key
                       << ", val: " << backing_array[i]->value << std::endl;
+            pair* temp = backing_array[i];
+            while ( temp->next != nullptr ) {
+                std::cout << "position: " << i
+                          << ", key: " << temp->next->key
+                          << ", val: " << temp->next->value << std::endl;
+                temp = temp->next;
+            }
         }
     }
 }
