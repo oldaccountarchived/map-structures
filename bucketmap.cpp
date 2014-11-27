@@ -99,19 +99,20 @@ std::size_t BucketMap::capacity() {
     return size;
 }
 
-void BucketMap::print() {
+std::ostream& BucketMap::print( std::ostream& out ) {
     for ( int i = 0; i != max_size; ++i ) {
         if ( backing_array[i] != nullptr ) {
-            std::cout << "position: " << i
+            out << "position: " << i
                       << ", key: " << backing_array[i]->key
                       << ", val: " << backing_array[i]->value << std::endl;
             pair* temp = backing_array[i];
             while ( temp->next != nullptr ) {
-                std::cout << "position: " << i
+                out << "position: " << i
                           << ", key: " << temp->next->key
                           << ", val: " << temp->next->value << std::endl;
                 temp = temp->next;
             }
         }
     }
+    return out;
 }

@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstddef>
+#include <ostream>
 
 class BucketMap {
 
@@ -13,7 +14,7 @@ public:
     void clear();
     bool isEmpty();
     std::size_t capacity();
-    void print();
+    std::ostream& print( std::ostream& out );
 
 private:
     struct pair {

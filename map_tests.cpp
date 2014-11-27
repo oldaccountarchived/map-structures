@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "hashmap.cpp"
-#include "bucketmap.cpp"
+#include "hashmap.hpp"
+#include "bucketmap.hpp"
 
 TEST_CASE ( "Testing hashmap", "[HashMap]" ) {
     HashMap map(5);

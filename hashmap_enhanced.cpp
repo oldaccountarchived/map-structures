@@ -1,8 +1,8 @@
-#include "hashmap.hpp"
+#include "enhanced_hashmap.hpp"
 #include <cstddef>
 #include <iostream>
 
-HashMap::HashMap(unsigned int max_size) {
+EnhHashMap::EnhHashMap(unsigned int max_size) {
     this->backing_array = new pair*[1024];
     this->size = 0;
     this->max_size = max_size;
@@ -10,15 +10,27 @@ HashMap::HashMap(unsigned int max_size) {
         backing_array[i] = nullptr;
 }
 
-HashMap::~HashMap() {
+EnhHashMap::~EnhHashMap() {
     delete[] backing_array;
 }
 
-int HashMap::hash( char key ) {
+int EnhHashMap::hash( char key ) {
     return ( (int) key % max_size );
 }
 
-bool HashMap::insert( char key, int value ) {
+bool linear_probe( int index, int &count ) {
+    
+}
+
+bool quadratic_probe( int index, int &count ) {
+
+}
+
+int rehash( char key, int &count ) {
+    
+}
+
+int EnhHashMap::insert( char key, int value ) {
     if ( size == max_size ) {
         return false;
     }
@@ -44,7 +56,7 @@ bool HashMap::insert( char key, int value ) {
     }
 }
 
-bool HashMap::remove( char key, int &value ) {
+int EnhHashMap::remove( char key, int &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
@@ -90,7 +102,7 @@ bool HashMap::remove( char key, int &value ) {
     }
 }
 
-bool HashMap::search( char key, int &value ) {
+int EnhHashMap::search( char key, int &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
@@ -108,13 +120,13 @@ bool HashMap::search( char key, int &value ) {
     }
 }
 
-void HashMap::clear() {
+void EnhHashMap::clear() {
     for ( int i = 0; i != max_size; ++i ) {
         backing_array[i] = nullptr;
     }
 }
 
-bool HashMap::isEmpty() {
+bool EnhHashMap::isEmpty() {
     if ( size == 0 ) {
         return true;
     } else {
@@ -122,11 +134,11 @@ bool HashMap::isEmpty() {
     }
 }
 
-std::size_t HashMap::capacity() {
+std::size_t EnhHashMap::capacity() {
     return size;
 }
 
-std::ostream& HashMap::print( std::ostream& out ) {
+std::ostream& EnhHashMap::print( std::ostream& out ) {
     for ( int i = 0; i != max_size; ++i ) {
         if ( backing_array[i] != nullptr ) {
             out << "position: " << i

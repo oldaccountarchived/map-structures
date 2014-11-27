@@ -1,20 +1,23 @@
 #include <ostream>
 #include <cstdlib>
 
-class HashMap {
+class EnhHashMap {
 
 public:
-    HashMap(unsigned int max_size);
-    ~HashMap();
+    EnhHashMap(unsigned int max_size);
+    ~EnhHashMap();
 
-    bool insert( char key, int value );
-    bool remove( char key, int &value );
-    bool search( char key, int &value );
+    int insert( char key, int value );
+    int remove( char key, int &value );
+    int search( char key, int &value );
     void clear();
     bool isEmpty();
     std::size_t capacity();
     std::ostream& print( std::ostream& out );
-
+    void cluster_distribution(); // Change this return type.
+    // Change this return type. (Should be the type of the key)
+    void remove_random(); 
+    
 private:
     struct pair {
         int value;
