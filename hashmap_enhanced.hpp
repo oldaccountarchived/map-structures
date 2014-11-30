@@ -1,15 +1,20 @@
 #include <ostream>
 #include <cstdlib>
 
+template <typename KEY, typename VAL, typename HASH_FUNC,
+          typename PROBE_FUNC, typename COMP_FUNC>
+
 class EnhHashMap {
 
 public:
-    EnhHashMap(unsigned int max_size);
+    EnhHashMap(std::size_t max_size, HASH_FUNC hash, PROBE_FUNC probe,
+               COMP_FUNC comp);
+    
     ~EnhHashMap();
 
-    int insert( char key, int value );
-    int remove( char key, int &value );
-    int search( char key, int &value );
+    int insert( KEY key, VAL value );
+    int remove( KEY key, VAL &value );
+    int search( KEY key, VAL &value );
     void clear();
     bool isEmpty();
     std::size_t capacity();
@@ -20,16 +25,18 @@ public:
     
 private:
     struct pair {
-        int value;
-        char key;
+        VAL value;
+        KEY key;
 
-        pair( char key, int value ) {
+        pair( KEY key, VAL value ) {
             this->value = value;
             this->key = key;
         }
     };
     pair** backing_array;
-    unsigned int size;
-    unsigned int max_size;
-    int hash( char key );
+    std::size_t size;
+    std::size_t max_size;
+    HASH_FUNC hash;
+    COMP_FUNC comp;
+    PROBE_FUNC probe;
 };

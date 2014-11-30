@@ -3,7 +3,7 @@
 #include <iostream>
 
 HashMap::HashMap(unsigned int max_size) {
-    this->backing_array = new pair*[1024];
+    this->backing_array = new pair*[max_size];
     this->size = 0;
     this->max_size = max_size;
     for ( int i = 0; i != max_size; ++i )
