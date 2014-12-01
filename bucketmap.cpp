@@ -85,6 +85,7 @@ void BucketMap::clear() {
     for ( int i = 0; i != max_size; ++i ) {
         backing_array[i] = nullptr;
     }
+    this->size = 0;
 }
 
 bool BucketMap::isEmpty() {

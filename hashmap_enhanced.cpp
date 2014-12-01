@@ -4,22 +4,22 @@
 #include <cmath>
 
 // Hashing functions for different types:
-int int_hash( int key, size_t size ) {
+inline int int_hash( int key, size_t size ) {
     return ( key % size );
 }
 
-int double_hash( double key, size_t size ) {
+inline int double_hash( double key, size_t size ) {
     return ( int ) ( fmod(key, 1) * size );
 }
 
-int cstring_hash( const char* key, size_t size ) {
+inline int cstring_hash( char const* key, size_t size ) {
     int i = 0;
     while ( *key )
         i ^= *key++;
     return i % size;
 }
 
-int string_hash( std::string key, size_t size ) {
+inline int string_hash( std::string key, size_t size ) {
     int i = 0;
     for (int j = 0; j < key.length(); j++) {
         i ^= key.at(i);
@@ -28,39 +28,43 @@ int string_hash( std::string key, size_t size ) {
 }
 
 // Comparison functions for different types:
-bool string_compare( std::string s1, std::string s2 ) {
-    return !s1.compare(s2);
+inline bool string_compare( std::string s1, std::string s2 ) {
+    return s1 == s2;
 }
 
-bool cstring_compare( const char* c1, const char* c2 ) {
-    for(; *c1 == *c2; ++c1, ++c2)
-        if(*c1 == 0)
-            return true;
-    return false;
+inline bool cstring_compare( char const* c1, char const* c2 ) {
+    // for(; *c1 == *c2; ++c1, ++c2)
+    //     if(*c1 == 0)
+    //         return true;
+    if ( std::string(c1) == std::string(c2) ) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
-bool int_compare(int i1, int i2) {
+inline bool int_compare(int i1, int i2) {
     return i1 == i2;
 }
 
-bool double_compare(int d1, int d2) {
+inline bool double_compare(int d1, int d2) {
     return d1 == d2;
 }
 
 // Probing functions:
 template <typename KEY, typename VAL>
-int linear_probe( KEY key, VAL index, size_t size ) {
-    return ( (index + 1) % size );
+inline int linear_probe( KEY key, VAL index ) {
+    return index;
 }
 
 template <typename KEY, typename VAL>
-int quadratic_probe( KEY key, VAL index, size_t size ) {
-    return ( (index * index) % size );
+inline int quadratic_probe( KEY key, VAL index ) {
+    return (index * index);
 }
 
 // Rehashing for different types:
 template <typename KEY, typename VAL>
-int rehash( KEY key, VAL index, size_t size ) {
+inline int rehash( KEY key, VAL index ) {
     return 0;
 }
 
@@ -96,22 +100,22 @@ int EnhHashMap<KEY, VAL, HASH_FUNC,
         return -1;
     }
     pair* item = new pair( key, value );
-    int index = hash(key);
+    int index = hash(key, max_size);
     if ( this->backing_array[index] == nullptr ) {
         this->backing_array[index] = item;
         ++size;
         return 0;
     } else {
-        int counter = 0;
+        int counter = 1;
         int i = index;
         do {
-            i = probe(key, i, max_size);
-            ++counter;
+            i = ( ( i + probe(key, counter) ) % max_size );
             if ( this->backing_array[i] == nullptr ) {
                 this->backing_array[i] = item;
                 ++size;
                 return counter;
             }
+            ++counter;
         } while ( i != index );
         
         // There's no spot to insert this value.
@@ -123,14 +127,15 @@ template <typename KEY, typename VAL, typename HASH_FUNC,
           typename PROBE_FUNC, typename COMP_FUNC>
 int EnhHashMap<KEY, VAL, HASH_FUNC,
                PROBE_FUNC, COMP_FUNC>::remove( KEY key, VAL &value ) {
-    int index = hash(key);
-    if ( backing_array[index]->key.comp( key ) ) {
+    int index = hash(key, max_size);
+    if ( comp( key, this->backing_array[index]->key ) ) {
         value = backing_array[index]->value;
         backing_array[index] = nullptr;
         --size;
         int i = index;
+        int counter = 1;
         do {
-            i = probe(key, i, max_size);
+            i = ( ( i + probe(key, counter) ) % max_size );
             if ( backing_array[i] == nullptr ) {
                 break;
             }
@@ -140,19 +145,19 @@ int EnhHashMap<KEY, VAL, HASH_FUNC,
         } while ( i != index );
         return 0;
     } else {
-        int counter = 0;
+        int counter = 1;
         int i = index;
         do {
-            i = probe(key, i, max_size);
-            ++counter;
-            if ( this->backing_array[i].comp( key ) ) {
-                 value = backing_array[index]->value;
+            i = ( ( i + probe(key, counter) ) % max_size );
+            if ( comp( key, this->backing_array[i]->key ) ) {
+                 value = backing_array[i]->value;
                  backing_array[index] = nullptr;
                  --size;
                  int j = i;
+                 int counter2 = counter;
                  do {
-                     j = probe(key, j, max_size);
-                     if ( backing_array[i] == nullptr ) {
+                     j = ( ( j + probe(key, counter2) ) % max_size );
+                     if ( backing_array[j] == nullptr ) {
                          break;
                      }
                      pair* temp = backing_array[j];
@@ -161,32 +166,9 @@ int EnhHashMap<KEY, VAL, HASH_FUNC,
                  } while ( j != i );
                  return counter;
             }
+            ++counter;
         } while ( i != index ); 
         return -1;
-        
-         for ( int i = index + 1; i != index; ++i ) {
-            if ( i == max_size ) { // Wrap around
-                i = 0;
-            }
-            if ( backing_array[i]->key == key ) {
-                 value = backing_array[i]->value;
-                 backing_array[i] = nullptr;
-                 --size;
-                 for ( int j = i + 1; j != i; ++j ) {
-                     if ( j == max_size ) {
-                         j = 0;
-                     }
-                     if ( backing_array[j] == nullptr ) {
-                         break;
-                     }
-                     pair* temp = backing_array[j];
-                     backing_array[j] = nullptr;
-                     insert( temp->key, temp->value );
-                 }
-                 return true;
-            }
-         }
-         return false;
     }
 }
 
@@ -194,21 +176,21 @@ template <typename KEY, typename VAL, typename HASH_FUNC,
           typename PROBE_FUNC, typename COMP_FUNC>
 int EnhHashMap<KEY, VAL, HASH_FUNC,
                PROBE_FUNC, COMP_FUNC>::search( KEY key, VAL &value ) {
-    int index = hash(key);
+    int index = hash(key, max_size);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
         return 0;
     } else {
-        int counter = 0;
+        int counter = 1;
         int i = index;
         do {
-            i = probe(key, i, max_size);
-            ++counter;
+            i = ( (i + probe(key, counter)) % max_size );
             // Change this to use compare function...
-            if ( this->backing_array[i]->key.comp(key) ) {
+            if ( comp( key, this->backing_array[i]->key ) ) {
                 value = this->backing_array[i]->value;
                 return counter;
             }
+            ++counter;
         } while ( i != index );
         return -1;
     }
@@ -220,6 +202,7 @@ void EnhHashMap<KEY, VAL, HASH_FUNC, PROBE_FUNC, COMP_FUNC>::clear() {
     for ( int i = 0; i != max_size; ++i ) {
         backing_array[i] = nullptr;
     }
+    this->size = 0;
 }
 
 template <typename KEY, typename VAL, typename HASH_FUNC,
