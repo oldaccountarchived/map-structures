@@ -1,8 +1,6 @@
 #include "bucketmap.hpp"
-#include <stack>
-#include <iostream>
 
-BucketMap::BucketMap(unsigned int max_size) {
+BucketMap::BucketMap(std::size_t max_size) {
     this->backing_array = new pair*[1024];
     this->size = 0;
     this->max_size = max_size;
@@ -14,11 +12,11 @@ BucketMap::~BucketMap() {
     delete[] backing_array;
 }
 
-int BucketMap::hash( char key ) {
+int BucketMap::hash( int key ) {
     return ( (int) key % max_size );
 }
 
-bool BucketMap::insert( char key, int value ) {
+bool BucketMap::insert( int key, char value ) {
     if ( size == max_size ) {
         return false;
     }
@@ -38,7 +36,7 @@ bool BucketMap::insert( char key, int value ) {
     }
 }
 
-bool BucketMap::remove( char key, int &value ) {
+bool BucketMap::remove( int key, char &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
@@ -62,7 +60,7 @@ bool BucketMap::remove( char key, int &value ) {
     }
 }
 
-bool BucketMap::search( char key, int &value ) {
+bool BucketMap::search( int key, char &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
@@ -101,19 +99,23 @@ std::size_t BucketMap::capacity() {
 }
 
 std::ostream& BucketMap::print( std::ostream& out ) {
+    out << "[ ";
     for ( int i = 0; i != max_size; ++i ) {
         if ( backing_array[i] != nullptr ) {
-            out << "position: " << i
-                      << ", key: " << backing_array[i]->key
-                      << ", val: " << backing_array[i]->value << std::endl;
+            out << backing_array[i]->key;
             pair* temp = backing_array[i];
             while ( temp->next != nullptr ) {
-                out << "position: " << i
-                          << ", key: " << temp->next->key
-                          << ", val: " << temp->next->value << std::endl;
                 temp = temp->next;
+                out << ", " << temp->key;
             }
+        } else {
+            out << "-";
+        }
+
+        if ( i != max_size - 1 ) {
+            out << " | ";
         }
     }
+    out << " ]";
     return out;
 }

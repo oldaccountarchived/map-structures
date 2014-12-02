@@ -29,6 +29,7 @@ int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::insert( KEY key, VAL value ) {
         delete backing_array[free];
         backing_array[free] = new pair( key, value );
         free = new_free;
+        ++current_size;
         return 0;
     }
     
@@ -41,6 +42,7 @@ int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::insert( KEY key, VAL value ) {
                 delete backing_array[free];
                 backing_array[free] = new pair( key, value );
                 free = new_free;
+                ++current_size;
                 return counter;
             } else {
                 current = backing_array[current]->left;
@@ -53,6 +55,7 @@ int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::insert( KEY key, VAL value ) {
                     delete backing_array[free];
                     backing_array[free] = new pair( key, value );
                     free = new_free;
+                    ++current_size;
                     return counter;
                 } else {
                     current = backing_array[current]->right;
@@ -64,12 +67,36 @@ int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::insert( KEY key, VAL value ) {
 }
 
 template <typename KEY, typename VAL, typename COMP_FUNC, typename LT_FUNC>
-int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::search( KEY key, VAL &value ) {
+int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::remove( KEY key, VAL &value ) {
     int current = root;
     if ( comp( backing_array[current]->key, key ) ) {
         value = backing_array[current]->value;
-        return 0;
+        if (backing_array[current]->left == -1) {
+            root = backing_array[current]->right;
+            backing_array[current]->left = free;
+            free = current;
+            --current_size;
+            return 0;
+        } else if ( backing_array[current]->right == -1 ) {
+            root = backing_array[current]->left;
+            backing_array[current]->left = free;
+            free = current;
+            --current_size;
+            return 0;
+        } else {
+            // Handle this.
+        }
     }
+    int counter = 0;
+}
+
+template <typename KEY, typename VAL, typename COMP_FUNC, typename LT_FUNC>
+int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::search( KEY key, VAL &value ) {
+    int current = root;
+    // if ( comp( backing_array[current]->key, key ) ) {
+    //     value = backing_array[current]->value;
+    //     return 0;
+    // }
     int counter = 0;
     while ( current != -1 ) {
         if ( comp( key, backing_array[current]->key) ) {
@@ -84,4 +111,24 @@ int RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::search( KEY key, VAL &value ) {
         }
     }
     return counter * -1;
+}
+
+template <typename KEY, typename VAL, typename COMP_FUNC, typename LT_FUNC>
+void RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::clear() {
+    delete[] backing_array;
+}
+
+template <typename KEY, typename VAL, typename COMP_FUNC, typename LT_FUNC>
+bool RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::isEmpty() {
+    return current_size == 0;
+}
+
+template <typename KEY, typename VAL, typename COMP_FUNC, typename LT_FUNC>
+std::size_t RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::size() {
+    return current_size;
+}
+
+template <typename KEY, typename VAL, typename COMP_FUNC, typename LT_FUNC>
+std::size_t RBST<KEY, VAL, COMP_FUNC, LT_FUNC>::capacity() {
+    return size;
 }

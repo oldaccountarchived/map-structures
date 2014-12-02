@@ -1,72 +1,4 @@
 #include "hashmap_enhanced.hpp"
-#include <cstddef>
-#include <iostream>
-#include <cmath>
-
-// Hashing functions for different types:
-inline int int_hash( int key, size_t size ) {
-    return ( key % size );
-}
-
-inline int double_hash( double key, size_t size ) {
-    return ( int ) ( fmod(key, 1) * size );
-}
-
-inline int cstring_hash( char const* key, size_t size ) {
-    int i = 0;
-    while ( *key )
-        i ^= *key++;
-    return i % size;
-}
-
-inline int string_hash( std::string key, size_t size ) {
-    int i = 0;
-    for (int j = 0; j < key.length(); j++) {
-        i ^= key.at(i);
-    }
-    return i % size;
-}
-
-// Comparison functions for different types:
-inline bool string_compare( std::string s1, std::string s2 ) {
-    return s1 == s2;
-}
-
-inline bool cstring_compare( char const* c1, char const* c2 ) {
-    // for(; *c1 == *c2; ++c1, ++c2)
-    //     if(*c1 == 0)
-    //         return true;
-    if ( std::string(c1) == std::string(c2) ) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-inline bool int_compare(int i1, int i2) {
-    return i1 == i2;
-}
-
-inline bool double_compare(int d1, int d2) {
-    return d1 == d2;
-}
-
-// Probing functions:
-template <typename KEY, typename VAL>
-inline int linear_probe( KEY key, VAL index ) {
-    return index;
-}
-
-template <typename KEY, typename VAL>
-inline int quadratic_probe( KEY key, VAL index ) {
-    return (index * index);
-}
-
-// Rehashing for different types:
-template <typename KEY, typename VAL>
-inline int rehash( KEY key, VAL index ) {
-    return 0;
-}
 
 // EnhHashMap Implementation:
 template <typename KEY, typename VAL, typename HASH_FUNC,
@@ -223,14 +155,68 @@ std::size_t EnhHashMap<KEY, VAL, HASH_FUNC, PROBE_FUNC, COMP_FUNC>::capacity() {
 
 template <typename KEY, typename VAL, typename HASH_FUNC,
           typename PROBE_FUNC, typename COMP_FUNC>
-std::ostream& EnhHashMap<KEY, VAL, HASH_FUNC,
-                         PROBE_FUNC, COMP_FUNC>::print( std::ostream& out ) {
+KEY EnhHashMap<KEY, VAL, HASH_FUNC, PROBE_FUNC, COMP_FUNC>::remove_random() {
+    int counter = nrand( size );
+    int j = 0;
+    
     for ( int i = 0; i != max_size; ++i ) {
         if ( backing_array[i] != nullptr ) {
-            out << "position: " << i
-                << ", key: " << backing_array[i]->key
-                << ", val: " << backing_array[i]->value << std::endl;
+            ++j;
+            if ( j == counter ) {
+                KEY key = backing_array[i]->key;
+                int garbage_val = 0;
+                remove(key, garbage_val);
+                return key;
+            }
         }
     }
+}
+
+template <typename KEY, typename VAL, typename HASH_FUNC,
+          typename PROBE_FUNC, typename COMP_FUNC>
+cluster* EnhHashMap<KEY, VAL, HASH_FUNC,
+                    PROBE_FUNC, COMP_FUNC>::cluster_distribution() {
+    cluster* head = new cluster( 0, 0 );
+    cluster* current = head;
+    int j = 0;
+    int cluster_size = 1;
+    for ( int i = 0; i < max_size; ++i ) {
+        if ( backing_array[i] != nullptr ) {
+            j = i + 1;
+            while ( backing_array[j] != nullptr ) {
+                ++cluster_size;
+                ++j;
+            }
+            if ( cluster_size > 1 ) {
+                current->next = new cluster(i, cluster_size);
+                current = current->next;
+                i = j - 1;
+                cluster_size = 1;
+            }
+        }
+    }
+    current = head;
+    head = head->next;
+    delete current;
+    return head;
+}
+
+template <typename KEY, typename VAL, typename HASH_FUNC,
+          typename PROBE_FUNC, typename COMP_FUNC>
+std::ostream& EnhHashMap<KEY, VAL, HASH_FUNC,
+                         PROBE_FUNC, COMP_FUNC>::print( std::ostream& out ) {
+    out << "[ ";
+    for ( int i = 0; i != max_size; ++i ) {
+        if ( backing_array[i] != nullptr ) {
+            out << backing_array[i]->key;
+        } else {
+            out << "-";
+        }
+
+        if ( i != max_size - 1 ) {
+            out << " | ";
+        }
+    }
+    out << " ]";
     return out;
 }

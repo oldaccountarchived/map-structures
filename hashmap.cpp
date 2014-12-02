@@ -1,8 +1,6 @@
 #include "hashmap.hpp"
-#include <cstddef>
-#include <iostream>
 
-HashMap::HashMap(unsigned int max_size) {
+HashMap::HashMap(std::size_t max_size) {
     this->backing_array = new pair*[max_size];
     this->size = 0;
     this->max_size = max_size;
@@ -14,11 +12,11 @@ HashMap::~HashMap() {
     delete[] backing_array;
 }
 
-int HashMap::hash( char key ) {
+int HashMap::hash( int key ) {
     return ( (int) key % max_size );
 }
 
-bool HashMap::insert( char key, int value ) {
+bool HashMap::insert( int key, char value ) {
     if ( size == max_size ) {
         return false;
     }
@@ -44,7 +42,7 @@ bool HashMap::insert( char key, int value ) {
     }
 }
 
-bool HashMap::remove( char key, int &value ) {
+bool HashMap::remove( int key, char &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
@@ -90,7 +88,7 @@ bool HashMap::remove( char key, int &value ) {
     }
 }
 
-bool HashMap::search( char key, int &value ) {
+bool HashMap::search( int key, char &value ) {
     int index = hash(key);
     if ( backing_array[index]->key == key ) {
         value = backing_array[index]->value;
@@ -128,12 +126,18 @@ std::size_t HashMap::capacity() {
 }
 
 std::ostream& HashMap::print( std::ostream& out ) {
+    out << "[ ";
     for ( int i = 0; i != max_size; ++i ) {
         if ( backing_array[i] != nullptr ) {
-            out << "position: " << i
-                << ", key: " << backing_array[i]->key
-                << ", val: " << backing_array[i]->value << std::endl;
+            out << backing_array[i]->key;
+        } else {
+            out << "-";
+        }
+
+        if ( i != max_size - 1 ) {
+            out << " | ";
         }
     }
+    out << " ]";
     return out;
 }

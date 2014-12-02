@@ -1,5 +1,7 @@
 #include <ostream>
 #include <cstdlib>
+#include "cluster.hpp"
+#include "common_functions.cpp"
 
 template <typename KEY, typename VAL, typename HASH_FUNC,
           typename PROBE_FUNC, typename COMP_FUNC>
@@ -18,10 +20,10 @@ public:
     void clear();
     bool isEmpty();
     std::size_t capacity();
-    std::ostream& print( std::ostream& out );
-    void cluster_distribution(); // Change this return type.
+    std::ostream& print( std::ostream& out ); 
+    cluster* cluster_distribution(); // Change this return type.
     // Change this return type. (Should be the type of the key)
-    void remove_random(); 
+    KEY remove_random(); 
     
 private:
     struct pair {
